@@ -9,59 +9,49 @@ from datetime import datetime
 
 import requests
 
+import requests
+from bs4 import BeautifulSoup
+import json
+from django.core.management.base import BaseCommand
+
+
 class Command(BaseCommand):
     help = 'Customized admin command. Hi readers!'
 
     def handle(self, *args, **options):
-        url = "https://wila.aljex.com/proute.php"
-        params = {
-            "qual": "58fghh65",
-            "type": "lookup",
-            "prcnam": "availloads",
-            "B1": "View Available Loads"
-            # date, ostate va boshqa zarur parametrlarni qo'shishingiz mumkin
+        payload = {
+            'qual': '58fghh65',
+            'type': 'lookup',
+            'prcnam': 'availloads',
+            'date': '',
+            'ostate': '',
+            'B1': 'View Available Loads'
         }
-        html_content = requests.post(url,params=params)
+        url = 'https://wila.aljex.com/proute.php'
+        req = requests.post(url, data=payload)
 
-    def parse_html_to_json(html_content):
-        # HTML ni BeautifulSoup orqali qayta ishlab chiqamiz
-        soup = BeautifulSoup(html_content, 'html.parser')
+        # Sahifani pars qilish
+        soup = BeautifulSoup(req.text, 'html.parser')
 
-        # JSON obyektini tuzamiz
-        data = {}
+        # Ma'lumotlarni ajratish
+        loads = []
+        for row in soup.select('tr'):  # Jadval qatorlarini topish
+            columns = row.find_all('td')
+            if len(columns) >= 8:  # Kerakli ustunlar soni bo'lsa
+                load_data = {
+                    'Ship Date': columns[0].get_text(strip=True),
+                    'Origin': columns[1].get_text(strip=True),
+                    'Destination': columns[2].get_text(strip=True),
+                    'Trailer Type': columns[3].get_text(strip=True),
+                    'Length': columns[4].get_text(strip=True),
+                    'Weight': columns[5].get_text(strip=True),
+                    'Phone': columns[6].get_text(strip=True),
+                    'Office': columns[7].get_text(strip=True)
+                }
+                loads.append(load_data)
 
-        # Ma'lumotlarni tanlash
-        data['title'] = soup.title.text.strip()
-        data['content'] = soup.find(id='content').get_text().strip()
-        items = soup.find_all('li')
-        data['items'] = [item.text.strip() for item in items]
+        # JSON faylga saqlash
+        with open('loads.json', 'w', encoding='utf-8') as f:
+            json.dump(loads, f, ensure_ascii=False, indent=4)
 
-        # JSON formatiga o'tkazamiz
-        json_data = json.dumps(data, indent=4)
-        return json_data
-
-        # HTML ma'lumotlarni olish
-
-    html_content = """
-       <!DOCTYPE html>
-       <html>
-       <head>
-           <title>Sample HTML Page</title>
-       </head>
-       <body>
-           <div id="content">
-               <h1>Hello, World!</h1>
-               <p>This is a sample HTML content.</p>
-               <ul>
-                   <li>Item 1</li>
-                   <li>Item 2</li>
-                   <li>Item 3</li>
-               </ul>
-           </div>
-       </body>
-       </html>
-       """
-
-    # HTML ni JSON formatiga o'tkazish
-    json_data = parse_html_to_json(html_content)
-    print(json_data)
+        print(f"Scraped data saved to loads.json")
