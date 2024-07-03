@@ -13,7 +13,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 from django.core.management.base import BaseCommand
-
+from projectapp.models import Load
 
 class Command(BaseCommand):
     help = 'Customized admin command. Hi readers!'
@@ -50,8 +50,21 @@ class Command(BaseCommand):
                 }
                 loads.append(load_data)
 
-        # JSON faylga saqlash
-        with open('loads.json', 'w', encoding='utf-8') as f:
-            json.dump(loads, f, ensure_ascii=False, indent=4)
-
-        print(f"Scraped data saved to loads.json")
+        for load in loads:
+            Load.objects.create(
+                name=None,  # Adjust this if you have a suitable value for the name field
+                origin=load['Origin'],
+                destination=load['Destination'],
+                length=int(load['Length']) if load['Length'].isdigit() else None,
+                weight=int(load['Weight']) if load['Weight'].isdigit() else None,
+                contact=load['Phone'],
+                comment=load['Office'],
+                # pickup_date=datetime.strptime(load['Ship Date']) if load['Ship Date'] else None,
+                # published_date=datetime.now(),
+                # updated_date=datetime.now(),
+                created_date=load["Ship Date"],
+                # Add any other fields that need to be set here
+                truck_status='pending',  # Default value, adjust as necessary
+                # results_count=len(loads),
+                results_data=load
+            )
