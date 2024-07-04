@@ -47,27 +47,3 @@ class Load(models.Model):
 
 
 
-
-# models.py
-
-# from django.db import models
-#
-# class Load(models.Model):
-#     pickup_city_state = models.CharField(max_length=255)
-#     delivery_city_state = models.CharField(max_length=255)
-#     pickup_date = models.DateField()
-#     length = models.CharField(max_length=10)
-#     weight = models.CharField(max_length=10)
-#     delivery_date = models.DateField()
-#     reference_load_number = models.CharField(max_length=255)
-#     commodity = models.CharField(max_length=255)
-#     price = models.DecimalField(max_digits=10, decimal_places=2)
-#     type = models.CharField(max_length=50, default='Dry Van')
-#     ftl_ltl = models.CharField(max_length=3, default='FTL')  # FTL or LTL
-#     name = models.CharField(max_length=255)
-#     contact = models.CharField(max_length=255)  # Store email or phone
-#     load_description = models.TextField()
-#
-#     def __str__(self):
-#         return f"Load {self.id}"
-#
